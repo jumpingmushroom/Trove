@@ -11,6 +11,11 @@ Nothing is scanned and nothing is revealed. The map only ever shows what you hav
 
 Built against **Valheim 1.0.15**. Nothing to install on the server.
 
+**One pin per patch, with a count and the item's own icon.** Crossed out where everything is
+picked; the copper pin goes when the deposit is mined out.
+
+**Hover a patch** for what is in it, how much is ready and when the rest grows back.
+
 ## Install
 
 Requires BepInEx 5. Drop `Trove.dll` into `BepInEx/plugins/` or install through a mod manager.
