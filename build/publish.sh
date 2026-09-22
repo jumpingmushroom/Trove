@@ -68,7 +68,7 @@ repository = "https://thunderstore.io"
 communities = [ "valheim", ]
 
 [publish.categories]
-valheim = [ "client-side", "tools", ]
+valheim = [ "client-side", "mods", "utility", "tools", "deep-north-update", ]
 '''
 open(os.path.join(root, "thunderstore.toml"), "w").write(toml)
 print(f"    {team}-{m['name']} {m['version_number']}")
