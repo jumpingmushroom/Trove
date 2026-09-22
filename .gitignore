@@ -1,0 +1,23 @@
+# Build output
+bin/
+obj/
+dist/
+
+# Game and BepInEx assemblies. Never commit: these are Iron Gate's and Jotunn's,
+# not ours to redistribute. Supply them via VALHEIM_INSTALL or a local lib/.
+lib/
+
+# Decompiled game source, if kept locally
+decomp/
+
+# IDE / OS
+*.user
+.vs/
+.idea/
+*.zip
+
+# Local agent/editor settings
+.claude/
+
+# Generated at publish time from thunderstore/manifest.json
+thunderstore.toml

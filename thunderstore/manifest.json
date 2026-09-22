@@ -1,0 +1,9 @@
+{
+  "name": "Trove",
+  "version_number": "0.1.0",
+  "website_url": "https://github.com/jumpingmushroom/Trove",
+  "description": "Remembers where you gathered: one map pin per berry patch, mushroom ring or ore node you actually picked or mined. No radar, nothing revealed.",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.2350"
+  ]
+}
