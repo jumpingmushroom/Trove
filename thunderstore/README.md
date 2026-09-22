@@ -14,7 +14,11 @@ Built against **Valheim 1.0.15**. Nothing to install on the server.
 **One pin per patch, with a count and the item's own icon.** Crossed out where everything is
 picked; the copper pin goes when the deposit is mined out.
 
+![The map](https://raw.githubusercontent.com/jumpingmushroom/Trove/main/docs/images/map.png)
+
 **Hover a patch** for what is in it, how much is ready and when the rest grows back.
+
+![Hovering a patch](https://raw.githubusercontent.com/jumpingmushroom/Trove/main/docs/images/hover.png)
 
 ## Install
 

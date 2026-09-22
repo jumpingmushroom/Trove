@@ -14,7 +14,7 @@ namespace Trove
     {
         public const string PluginGuid = "com.jumpingmushroom.trove";
         public const string PluginName = "Trove";
-        public const string PluginVersion = "0.1.0";
+        public const string PluginVersion = "0.1.1";
 
         internal static ManualLogSource Log;
 

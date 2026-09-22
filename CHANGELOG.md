@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 — 2026-09-22
+
+No code changes. The screenshots were missing from the Thunderstore package page; the
+README now links them absolutely so they render there.
+
 ## 0.1.0 — 2026-09-22
 
 First release. Published as Trove; the mod was prototyped under the working name GatherBuddy.

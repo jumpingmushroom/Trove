@@ -4,7 +4,9 @@
 # Thunderstore requires, at the ZIP ROOT (not nested in a folder):
 #   manifest.json   name matching ^[a-zA-Z0-9_]+$, semver version_number,
 #                   description <= 250 chars, dependencies as "Namespace-Name-Version"
-#   README.md       rendered as the package page
+#   README.md       rendered as the package page; it is served from thunderstore.io, so
+#                   every image must be an absolute https URL — a repo-relative path
+#                   renders as nothing at all
 #   icon.png        exactly 256x256
 #   CHANGELOG.md    optional, rendered as the changelog tab
 # A version can never be re-uploaded, so version_number must be bumped each release.
@@ -55,9 +57,16 @@ import struct
 w, h = struct.unpack(">II", head[16:24])
 if (w, h) != (256, 256):
     problems.append(f"icon.png must be exactly 256x256, got {w}x{h}")
+readme = open(os.path.join(root, "thunderstore/README.md"), encoding="utf-8").read()
+images = re.findall(r"!\[[^\]]*\]\(\s*([^)\s]+)", readme)
+images += re.findall(r"<img\b[^>]*?\bsrc=[\"\']([^\"\']+)", readme, re.I)
+for src in images:
+    if not src.lower().startswith("https://"):
+        problems.append(f"README image must be an absolute https URL: {src}")
 if problems:
     print("\n".join("  - " + p for p in problems)); sys.exit(1)
-print(f"  ok: {m['name']} {m['version_number']}, {len(m['dependencies'])} dependencies")
+print(f"  ok: {m['name']} {m['version_number']}, {len(m['dependencies'])} dependencies, "
+      f"{len(images)} README images")
 PY
 
 echo "==> staging"

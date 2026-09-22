@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>Trove</AssemblyName>
     <RootNamespace>Trove</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Description>Remembers where you gathered: a map pin for every patch you picked and every ore node you mined.</Description>
   </PropertyGroup>
 
