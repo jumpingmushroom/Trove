@@ -21,3 +21,9 @@ decomp/
 
 # Generated at publish time from thunderstore/manifest.json
 thunderstore.toml
+
+# Rig-specific dev loop (deploy to the gaming rig, read its log, screenshots): kept local
+build/deploy.sh
+build/logs.sh
+build/shot.sh
+build/crop.sh
