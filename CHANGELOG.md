@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.2 — 2026-10-05
+
+- **Pins now show on the large map only, unless you turn on `Pins.ShowOnMinimap`.** The setting
+  existed in 0.1.x but did nothing, so pins always showed on the minimap too. If you want them
+  there, set `Pins.ShowOnMinimap = true` in `BepInEx/config/com.jumpingmushroom.trove.cfg` or
+  through the configuration manager.
+- Dying no longer duplicates every pin. Each death left the old set on the map and added a new
+  one; the stray copies are gone after a relog.
+- A remembered plant or node could lose track of itself after a reload: its position was saved
+  too coarsely and could round to a neighbouring spot. Positions are now saved exactly.
+- One damaged line in the cache file no longer discards the whole file, and a file that cannot be
+  read is left untouched instead of being overwritten.
+- With `Pins.HideChecked` on, hidden patches no longer show a hover panel or take clicks.
+- Crossed-out pins refresh on time again after switching worlds within one session.
+
 ## 0.1.1 — 2026-09-22
 
 No code changes. The screenshots were missing from the Thunderstore package page; the
