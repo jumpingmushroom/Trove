@@ -76,6 +76,12 @@ namespace Trove.Model
             return n;
         }
 
+        /// <summary>Drawn crossed out: by hand, or a plant patch with nothing ready.</summary>
+        public bool IsChecked(double now)
+        {
+            return ManualChecked || (Kind != ResourceKind.Ore && ReadyCount(now) == 0);
+        }
+
         /// <summary>Earliest time any picked member grows back; 0 when none is pending.</summary>
         public double NextReadySec(double now)
         {

@@ -15,7 +15,6 @@
     <LibDir>$(MSBuildThisFileDirectory)lib</LibDir>
     <ValheimManaged Condition="'$(VALHEIM_INSTALL)' != ''">$(VALHEIM_INSTALL)/valheim_Data/Managed</ValheimManaged>
     <ValheimManaged Condition="'$(ValheimManaged)' == ''">$(LibDir)</ValheimManaged>
-    <JotunnPath Condition="'$(JotunnPath)' == ''">$(LibDir)</JotunnPath>
     <BepInExPath Condition="'$(BepInExPath)' == ''">$(LibDir)</BepInExPath>
   </PropertyGroup>
 </Project>

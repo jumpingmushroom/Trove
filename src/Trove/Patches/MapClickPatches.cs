@@ -1,5 +1,4 @@
 using Trove.Core;
-using Trove.Model;
 using Patch = Trove.Model.Patch;
 using Trove.UI;
 using HarmonyLib;

@@ -42,12 +42,22 @@ namespace Trove.UI
             _forceRebuild = true;
         }
 
+        /// <summary>Forget our pins without touching the map: for when the map itself is gone.</summary>
         public void Clear()
         {
             _pins.Clear();
             _map = null;
             _version = -1;
             _shown = false;
+            _nextReadyCheck = 0.0; // game seconds of the previous world; the next may start lower
+        }
+
+        /// <summary>Take our pins off the map if it is still alive, then forget them.</summary>
+        public void Reset()
+        {
+            if (_map != null)
+                RemoveAll(_map);
+            Clear();
         }
 
         public void Sync()
@@ -65,7 +75,10 @@ namespace Trove.UI
                 _map = map;
             }
 
-            bool show = PluginConfig.PinsEnabled.Value && PatchCache.Loaded;
+            // The minimap draws every entry in m_pins, so "not on the minimap" means the pins
+            // exist only while the large map is open.
+            bool show = PluginConfig.PinsEnabled.Value && PatchCache.Loaded
+                && (PluginConfig.ShowOnMinimap.Value || map.m_mode == Minimap.MapMode.Large);
             if (!show)
             {
                 if (_shown)
@@ -103,15 +116,12 @@ namespace Trove.UI
                 Patch p = patches[i];
                 if (p.Count == 0)
                     continue;
-                int ready = p.ReadyCount(now);
-                bool isChecked = p.ManualChecked || (p.Kind != ResourceKind.Ore && ready == 0);
+                bool isChecked = p.IsChecked(now);
                 if (isChecked && hideChecked)
                     continue;
 
                 ResourceCatalog.Info info = ResourceCatalog.ForItem(p.Item);
-                string name = ResourceCatalog.DisplayName(info);
-                if (string.IsNullOrEmpty(name))
-                    name = p.Item;
+                string name = ResourceCatalog.DisplayNameForItem(p.Item);
                 if (counts && p.Count > 1)
                     name += " ×" + p.Count;
 

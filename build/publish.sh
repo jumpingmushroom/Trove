@@ -83,4 +83,7 @@ fi
 echo "==> publishing $ZIP"
 echo "    a published version can never be replaced or deleted."
 cd "$ROOT"
-tcli publish --file "$ZIP" --token "$TCLI_AUTH_TOKEN"
+# tcli reads TCLI_AUTH_TOKEN from the environment itself; passing it as --token would put
+# the token on the command line, where any local user can read it in the process list.
+export TCLI_AUTH_TOKEN
+tcli publish --file "$ZIP"

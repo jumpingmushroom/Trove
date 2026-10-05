@@ -23,7 +23,7 @@ namespace Trove
         private Harmony _harmony;
 
         private float _nextSave;
-        private bool _hadPlayer;
+        private bool _wasInWorld;
 
         /// <summary>Never toggle while the player is typing.</summary>
         internal static bool InputBlocked()
@@ -54,10 +54,7 @@ namespace Trove
         private void OnDestroy()
         {
             PluginConfig.PinsChanged -= OnPinsChanged;
-            _pins.Clear();
-            _hover.Destroy();
-            PatchCache.Unload();
-            ResourceCatalog.Clear();
+            LeaveWorld();
             if (_harmony != null)
                 _harmony.UnpatchSelf();
         }
@@ -68,9 +65,9 @@ namespace Trove
         }
 
         /// <summary>Logged out or returned to the menu: forget the world.</summary>
-        private void LocalPlayerGone()
+        private void LeaveWorld()
         {
-            _pins.Clear();
+            _pins.Reset();
             _hover.Destroy();
             PatchCache.Unload(); // saves if dirty
             ResourceCatalog.Clear();
@@ -78,19 +75,20 @@ namespace Trove
 
         private void Update()
         {
+            // Detect logout by the game scene going away, not by the local player: the player is
+            // also destroyed on every death and respawn, while the world, the minimap and our
+            // pins on it carry on. Unity's == treats a destroyed object as null.
+            bool inWorld = Game.instance != null;
+            if (!inWorld && _wasInWorld)
+                LeaveWorld();
+            _wasInWorld = inWorld;
+
             Player player = Player.m_localPlayer;
-
-            // Detect logout / world change by polling, rather than from Player.OnDestroy: that
-            // method nulls m_localPlayer inside its own body, so a postfix comparing against it
-            // never matches. Unity's == treats a destroyed object as null, so track presence as a
-            // bool and identity with ReferenceEquals.
-            bool hasPlayer = player != null;
-            if (!hasPlayer && _hadPlayer)
-                LocalPlayerGone();
-            _hadPlayer = hasPlayer;
-
             if (player == null)
+            {
+                _hover.Clear(); // dead: no stale panel, and no click target behind it
                 return;
+            }
 
             ResourceCatalog.EnsureBuilt();
             PatchCache.EnsureLoaded();

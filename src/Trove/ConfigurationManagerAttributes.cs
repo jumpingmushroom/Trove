@@ -8,5 +8,4 @@ internal sealed class ConfigurationManagerAttributes
 {
     public bool? IsAdvanced;
     public int? Order;
-    public bool? Browsable;
 }

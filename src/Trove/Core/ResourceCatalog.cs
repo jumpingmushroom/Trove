@@ -281,5 +281,12 @@ namespace Trove.Core
                 return info.Item;
             return s;
         }
+
+        /// <summary>Display name for an item prefab name, or the prefab name itself when nothing catalogued yields it.</summary>
+        public static string DisplayNameForItem(string item)
+        {
+            string name = DisplayName(ForItem(item));
+            return string.IsNullOrEmpty(name) ? item : name;
+        }
     }
 }

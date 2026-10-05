@@ -50,7 +50,11 @@ namespace Trove.UI
                 return;
             }
 
-            Patch best = PatchStore.NearestAny(world, map.PinInteractRadius);
+            // Only what is drawn: a patch hidden by HideChecked must not hover or take clicks.
+            double now = PatchStore.Now();
+            bool hideChecked = PluginConfig.HideChecked.Value;
+            Patch best = PatchStore.Nearest(world, map.PinInteractRadius,
+                p => p.Count > 0 && !(hideChecked && p.IsChecked(now)));
             Current = best;
             if (best == null || !PluginConfig.HoverEnabled.Value)
             {
@@ -80,11 +84,7 @@ namespace Trove.UI
         {
             double now = PatchStore.Now();
             var sb = new StringBuilder(160);
-            ResourceCatalog.Info info = ResourceCatalog.ForItem(p.Item);
-            string name = ResourceCatalog.DisplayName(info);
-            if (string.IsNullOrEmpty(name))
-                name = p.Item;
-            sb.Append("<b>").Append(name).Append("</b>");
+            sb.Append("<b>").Append(ResourceCatalog.DisplayNameForItem(p.Item)).Append("</b>");
 
             if (p.Kind == ResourceKind.Ore)
             {

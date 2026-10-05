@@ -120,7 +120,7 @@ namespace Trove.Core
                 RemoveMember(m);
             }
 
-            patch = Nearest(kind, item, pos, clusterRadius);
+            patch = Nearest(pos, clusterRadius, p => p.Kind == kind && p.Item == item);
             if (patch == null)
             {
                 patch = new Patch { Id = _nextId++, Kind = kind, Item = item, Center = pos };
@@ -128,19 +128,7 @@ namespace Trove.Core
                 created = true;
             }
 
-            m = new Member
-            {
-                Key = key,
-                Pos = pos,
-                Prefab = prefab,
-                RespawnMinutes = respawnMinutes,
-                Picked = picked,
-                PickedSec = picked ? now : 0.0,
-            };
-            _members[key] = m;
-            _owner[m] = patch;
-            patch.Members.Add(m);
-            patch.Recenter();
+            AddMember(patch, key, pos, prefab, respawnMinutes, picked, picked ? now : 0.0);
             Touch();
             return patch;
         }
@@ -149,6 +137,11 @@ namespace Trove.Core
         public static void Restore(int patchId, ResourceKind kind, string item, string prefab, Vector3 pos,
             float respawnMinutes, bool picked, double pickedSec, bool manualChecked)
         {
+            // A key already taken must not leave a new, empty patch behind.
+            string key = Member.MakeKey(pos);
+            if (_members.ContainsKey(key))
+                return;
+
             Patch patch = null;
             for (int i = 0; i < _patches.Count; i++)
                 if (_patches[i].Id == patchId)
@@ -165,22 +158,7 @@ namespace Trove.Core
             }
             if (manualChecked)
                 patch.ManualChecked = true;
-            string key = Member.MakeKey(pos);
-            if (_members.ContainsKey(key))
-                return;
-            var m = new Member
-            {
-                Key = key,
-                Pos = pos,
-                Prefab = prefab,
-                RespawnMinutes = respawnMinutes,
-                Picked = picked,
-                PickedSec = pickedSec,
-            };
-            _members[key] = m;
-            _owner[m] = patch;
-            patch.Members.Add(m);
-            patch.Recenter();
+            AddMember(patch, key, pos, prefab, respawnMinutes, picked, pickedSec);
             Version++;
         }
 
@@ -247,21 +225,42 @@ namespace Trove.Core
             Touch();
         }
 
-        /// <summary>Nearest patch to a world point within radius (XZ), any kind or item.</summary>
-        public static Patch NearestAny(Vector3 pos, float radius)
+        /// <summary>Nearest patch to a world point within radius (XZ) that <paramref name="accept"/> allows.</summary>
+        public static Patch Nearest(Vector3 pos, float radius, Func<Patch, bool> accept)
         {
             Patch best = null;
             float bestD = radius;
             for (int i = 0; i < _patches.Count; i++)
             {
-                float d = Utils.DistanceXZ(_patches[i].Center, pos);
+                Patch p = _patches[i];
+                if (!accept(p))
+                    continue;
+                float d = Utils.DistanceXZ(p.Center, pos);
                 if (d <= bestD)
                 {
                     bestD = d;
-                    best = _patches[i];
+                    best = p;
                 }
             }
             return best;
+        }
+
+        private static void AddMember(Patch patch, string key, Vector3 pos, string prefab, float respawnMinutes,
+            bool picked, double pickedSec)
+        {
+            var m = new Member
+            {
+                Key = key,
+                Pos = pos,
+                Prefab = prefab,
+                RespawnMinutes = respawnMinutes,
+                Picked = picked,
+                PickedSec = pickedSec,
+            };
+            _members[key] = m;
+            _owner[m] = patch;
+            patch.Members.Add(m);
+            patch.Recenter();
         }
 
         private static void RemoveMember(Member m)
@@ -277,25 +276,6 @@ namespace Trove.Core
                 else
                     p.Recenter();
             }
-        }
-
-        private static Patch Nearest(ResourceKind kind, string item, Vector3 pos, float radius)
-        {
-            Patch best = null;
-            float bestD = radius;
-            for (int i = 0; i < _patches.Count; i++)
-            {
-                Patch p = _patches[i];
-                if (p.Kind != kind || p.Item != item)
-                    continue;
-                float d = Utils.DistanceXZ(p.Center, pos);
-                if (d <= bestD)
-                {
-                    bestD = d;
-                    best = p;
-                }
-            }
-            return best;
         }
 
         private static void Touch()

@@ -19,6 +19,9 @@ namespace Trove.Core
         private static string _path;
         private static long _loadedWorld;
 
+        /// <summary>The file exists but could not be read: never overwrite it this session.</summary>
+        private static bool _readFailed;
+
         public static bool Loaded => _path != null;
         public static string Path => _path;
 
@@ -46,6 +49,7 @@ namespace Trove.Core
             PatchStore.Clear();
             _path = null;
             _loadedWorld = 0;
+            _readFailed = false;
         }
 
         public static void SaveIfDirty()
@@ -81,38 +85,16 @@ namespace Trove.Core
                 {
                     if (raw.Length == 0 || raw[0] == '#')
                         continue;
-                    string[] f = raw.Split('\t');
-                    if (f.Length < 10)
-                    {
+                    if (!LoadLine(raw))
                         bad++;
-                        continue;
-                    }
-                    ResourceKind kind;
-                    switch (f[1])
-                    {
-                        case "P": kind = ResourceKind.Pickable; break;
-                        case "S": kind = ResourceKind.OneShot; break;
-                        case "O": kind = ResourceKind.Ore; break;
-                        case "X":
-                            PatchStore.RestoreForgotten(Member.MakeKey(new Vector3(F(f[4]), F(f[5]), F(f[6]))));
-                            continue;
-                        default: bad++; continue;
-                    }
-                    string flags = f.Length > 10 ? f[10] : "";
-                    PatchStore.Restore(
-                        int.Parse(f[0], CultureInfo.InvariantCulture),
-                        kind, f[2], f[3],
-                        new Vector3(F(f[4]), F(f[5]), F(f[6])),
-                        F(f[7]),
-                        f[8] == "1",
-                        double.Parse(f[9], CultureInfo.InvariantCulture),
-                        flags.IndexOf('c') >= 0);
                 }
             }
             catch (Exception ex)
             {
-                TrovePlugin.Log.LogWarning("could not read cache " + _path + ": " + ex.Message);
+                TrovePlugin.Log.LogWarning("could not read cache " + _path + ": " + ex.Message +
+                    "; nothing will be saved for this world until it is reloaded, so the file is left as it is");
                 PatchStore.Clear();
+                _readFailed = true;
                 return;
             }
             PatchStore.MarkSaved();
@@ -122,9 +104,49 @@ namespace Trove.Core
                 bad > 0 ? ", skipped " + bad + " bad line(s)" : ""));
         }
 
+        /// <summary>One cache line into the store; false when it cannot be read, so one bad line costs one entry.</summary>
+        private static bool LoadLine(string raw)
+        {
+            string[] f = raw.Split('\t');
+            if (f.Length < 10)
+                return false;
+            try
+            {
+                ResourceKind kind;
+                switch (f[1])
+                {
+                    case "P": kind = ResourceKind.Pickable; break;
+                    case "S": kind = ResourceKind.OneShot; break;
+                    case "O": kind = ResourceKind.Ore; break;
+                    case "X":
+                        PatchStore.RestoreForgotten(Member.MakeKey(new Vector3(F(f[4]), F(f[5]), F(f[6]))));
+                        return true;
+                    default: return false;
+                }
+                string flags = f.Length > 10 ? f[10] : "";
+                PatchStore.Restore(
+                    int.Parse(f[0], CultureInfo.InvariantCulture),
+                    kind, f[2], f[3],
+                    new Vector3(F(f[4]), F(f[5]), F(f[6])),
+                    F(f[7]),
+                    f[8] == "1",
+                    double.Parse(f[9], CultureInfo.InvariantCulture),
+                    flags.IndexOf('c') >= 0);
+                return true;
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+            catch (OverflowException)
+            {
+                return false;
+            }
+        }
+
         private static void Save()
         {
-            if (_path == null)
+            if (_path == null || _readFailed)
                 return;
 
             try
@@ -164,8 +186,9 @@ namespace Trove.Core
                 string tmp = _path + ".tmp";
                 File.WriteAllText(tmp, sb.ToString());
                 if (File.Exists(_path))
-                    File.Delete(_path);
-                File.Move(tmp, _path);
+                    File.Replace(tmp, _path, null);
+                else
+                    File.Move(tmp, _path);
                 PatchStore.MarkSaved();
 
                 if (PluginConfig.Verbose.Value)
@@ -177,9 +200,11 @@ namespace Trove.Core
             }
         }
 
+        /// <summary>Round-trip precision: the member key is recomputed from these on load, and a
+        /// coarser value can land on the other side of a 0.5 m grid line.</summary>
         private static string S(float v)
         {
-            return v.ToString("0.##", CultureInfo.InvariantCulture);
+            return v.ToString("R", CultureInfo.InvariantCulture);
         }
 
         private static float F(string s)
